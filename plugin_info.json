@@ -1,0 +1,10 @@
+{
+  "name": "Extras",
+  "author": "Ramón",
+  "version": "0.2.0",
+  "description": "Small quality-of-life extras for WanGP. Ctrl+Enter (Cmd+Enter on Mac) starts a generation from anywhere in the Video Generator tab, prompt box included: it clicks Generate, or Add New Prompt To Queue while a generation is running. Also blocks accidental back/forward navigation (mouse side buttons, Alt+Left/Right, browser back gesture).",
+  "type": ["extension"],
+  "url": "",
+  "date": "2026-10-22",
+  "wan2gp_version": ""
+}
