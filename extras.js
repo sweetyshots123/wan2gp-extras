@@ -54,4 +54,42 @@
     os.textContent = "html, body { overscroll-behavior-x: none; }";
     document.head.appendChild(os);
     console.log("[Extras] back/forward guard ready");
+    // Keep RL's *reference-image* bar in sync with the native row. The bar is a sibling of that
+    // row, so WanGP hiding the input does not hide the bar. Never force a native input visible.
+    const REF_TABS = ["generate", "edit"];
+    const REF_HIDDEN = "extras-refs-unavailable";
+    const refsStyle = document.createElement("style");
+    refsStyle.textContent = ".reflib-bar.extras-refs-unavailable { display: none !important; }";
+    document.head.appendChild(refsStyle);
+    function nativeReferencesAvailable(tab) {
+        const row = document.querySelector(`.extras-refs-row-${tab}`);
+        if (!row) return null; // missing/changed host integration: don't guess model capabilities
+        for (let el = row; el && el !== document.body; el = el.parentElement) {
+            // Inactive tabs are not model limitations. The bar is already hidden with its tab.
+            if (el.classList.contains("tabitem") || el.getAttribute("role") === "tabpanel") break;
+            const css = getComputedStyle(el);
+            if (el.hidden || el.classList.contains("hidden") || css.display === "none" || css.visibility === "hidden") return false;
+        }
+        return true;
+    }
+    function syncReferenceBars() {
+        for (const tab of REF_TABS) {
+            // Exact IDs: do not touch reflib_vbar_*, starting images, end images or generation.
+            const bar = document.getElementById(`reflib_bar_${tab}`);
+            if (!bar) continue;
+            const hide = nativeReferencesAvailable(tab) === false;
+            if (bar.classList.contains(REF_HIDDEN) !== hide) bar.classList.toggle(REF_HIDDEN, hide);
+        }
+    }
+    let refsScheduled = false;
+    const scheduleReferenceBars = () => {
+        if (refsScheduled) return;
+        refsScheduled = true;
+        requestAnimationFrame(() => { refsScheduled = false; syncReferenceBars(); });
+    };
+    // Re-created Gradio nodes/model changes are observed; the interval also handles delayed mounting.
+    const refsObserver = new MutationObserver(scheduleReferenceBars);
+    refsObserver.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ["class", "style", "hidden"] });
+    setInterval(scheduleReferenceBars, 1000);
+    syncReferenceBars();
 })();
